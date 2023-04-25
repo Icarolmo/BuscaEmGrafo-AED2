@@ -38,7 +38,7 @@ typedef struct
 } VERTICE;
 
 
-// A PARTIR DAQUI IMPLEMENTAMOS NOSSOS CÓDIGOS 
+// A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES A FUNÇÃO PRINCIPAL CAMINHO
 
 void abrirSalas(int *aberto){ // Função para abertura de todas as salas (somente caso encontre a chave)
 	

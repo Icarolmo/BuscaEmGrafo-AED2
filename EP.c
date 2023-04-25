@@ -1,5 +1,5 @@
 //--------------------------------------------------------------
-// NOMES DOS RESPONSÁVEIS: Icaro Lima de Oliveira E Wesley Fernandes
+// NOMES DOS RESPONSÁVEIS: Icaro Lima de Oliveira E Wesley Gabriel Rosa Fernandes
 //--------------------------------------------------------------
 
 #include <stdio.h>

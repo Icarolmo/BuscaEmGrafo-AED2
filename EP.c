@@ -40,19 +40,17 @@ typedef struct
 
 // A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES A FUNÇÃO PRINCIPAL CAMINHO
 
-void abrirSalas(int *aberto){ // Função para abertura de todas as salas (somente caso encontre a chave)
-	
-	int tamanho = sizeof(aberto)/sizeof(int); // Calculo do tamanho do vetor
-	int i = 0;	
-	while(i<tamanho){
-		aberto[i] = 1;	
+void abrirSalas(VERTICE *g, int N){ // Função para abertura de todas as salas (somente caso encontre a chave)
+	int i;
+	for(i = 0; i<N ; ++i){
+		g[i].aberto = 1;
 	}
 }
 
 
+
 // funcao principal
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave);
-
 //------------------------------------------
 // O EP consiste em implementar esta funcao
 // e outras funcoes auxiliares que esta
@@ -60,14 +58,12 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 //------------------------------------------
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
-	NO* resp;
-	resp = NULL;
+
 
 	// seu codigo AQUI
 
 	//...
 
-	return resp;
 }
 
 

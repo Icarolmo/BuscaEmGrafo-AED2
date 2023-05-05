@@ -38,7 +38,19 @@ typedef struct
 } VERTICE;
 
 
-// A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES A FUNÇÃO PRINCIPAL CAMINHO
+
+// COMENTÁRIO ICARO: A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES ANTES DA FUNÇÃO PRINCIPAL CAMINHO
+
+typedef struct noFila{ // Estrutura nó da Fila em lista ligada que será implementada no algoritmo de busca.
+	int vertice;
+	struct noFila *prox;
+} NO_FILA;
+
+typedef struct fila{ // Estrutura da respectiva Fila em lista ligada. 
+	NO_FILA *inicio;
+	NO_FILA *fim;
+} FILA;
+
 
 void abrirSalas(VERTICE *g, int N){ // Função para abertura de todas as salas (somente caso encontre a chave)
 	int i;
@@ -47,6 +59,51 @@ void abrirSalas(VERTICE *g, int N){ // Função para abertura de todas as salas 
 	}
 }
 
+VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto){ // Cria um grafo em lista de adjacencias e já o inicializa.
+	VERTICE * grafo = (VERTICE *) malloc(sizeof(VERTICE*)*v);
+	int i,j;
+	for(i = 0; i<v; ++i){
+		grafo[i].aberto = aberto[i];
+		grafo[i].flag = 0;
+		grafo[i].inicio = NULL;
+		for(j = 0; j<a*3; j = j+3){
+			if(ijpeso[j] == i){
+				NO *aux = (NO*) malloc(sizeof(NO*));
+				aux->adj = ijpeso[j+1];
+				aux->peso = ijpeso[j+2];
+				aux->prox = grafo[i].inicio;
+				grafo[i].inicio = aux;
+			}
+		}
+	}
+	return grafo;
+}
+
+
+void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo){ // ICARO: Algoritmo de busca que acredito ser o mais indicado para situação/problema.
+	// inicializa as dist (peso das arestas) e vias (por qual vertice estou acessando o vertice atual) dos vertices, respectivamente, em infinito e 0.
+	int i,j;
+	for(i = 0; i<v; ++i){
+		g[i].dist = 2147483647/2; // Para não termos problemas de estourar o limite de bytes de um int pegamos o maior inteiro possível e dividimos por 2.
+		g[i].via = 0;
+	}
+	g[origem].dist = 0; // A dist do vertice inicial inicializa em 0.
+
+	/* ICARO: 
+	A partir daqui estava iniciando a inicialização da estrutura FILA 
+	*Observação: acho melhor criar funções para criação/inicializa/inserção/pegar elemento/destruição da fila
+	realizar estas operações dentro da buscaDijkstra vai deixa o código/função/estrutura muito sujo e zuado
+	por enquanto vou deixa o inicio dela abaixo porém assim que der vou transferir pra funções externas e só chama-las
+	dentro da buscaDijkstra
+	*/
+	NO_FILA *aux = (NO_FILA*) malloc(sizeof(NO_FILA*));
+	aux->vertice = origem;
+	aux->prox = NULL;
+	FILA *fila;
+	fila->inicio->vertice, fila->fim->vertice = aux->vertice;
+	fila->inicio, fila->fim = aux;
+	
+}
 
 
 // funcao principal
@@ -58,8 +115,8 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 //------------------------------------------
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
-
-
+	VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
+	
 	// seu codigo AQUI
 
 	//...

@@ -80,6 +80,7 @@ VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto){ // Cria um grafo 
 }
 
 
+
 void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo){ // ICARO: Algoritmo de busca que acredito ser o mais indicado para situação/problema.
 	// inicializa as dist (peso das arestas) e vias (por qual vertice estou acessando o vertice atual) dos vertices, respectivamente, em infinito e 0.
 	int i,j;

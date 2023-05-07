@@ -38,8 +38,7 @@ typedef struct
 } VERTICE;
 
 
-
-// COMENTÁRIO ICARO: A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES ANTES DA FUNÇÃO PRINCIPAL CAMINHO
+// ICARO: A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES ANTES DA FUNÇÃO PRINCIPAL CAMINHO
 
 typedef struct noFila{ // Estrutura nó da Fila em lista ligada que será implementada no algoritmo de busca.
 	int vertice;
@@ -52,6 +51,50 @@ typedef struct fila{ // Estrutura da respectiva Fila em lista ligada.
 } FILA;
 
 
+// ICARO: Acima está a estrutura ideal (no meu entender) para a FILA que será necessária no algoritmo de Dijkstra.
+// A partir daqui realizei a implementação de algumas funções para manipular a FILA para utilizarmos dentro do algoritmo de busca (Dijkstra).
+
+
+FILA *criaFilaVazia(){ // Cria a estrutura FILA vazia com seu inicio e fim apontando para NULL.
+	FILA *fila = (FILA*) malloc(sizeof(FILA*));
+	fila->fim, fila->inicio = NULL;
+	return fila;
+}
+
+
+int filaVazia(FILA *fila){ // Verifica se a estrutura FILA está vazia
+	if(fila->inicio) return 0;
+	else return 1;
+}
+
+
+void insereFila(FILA *fila, int vertice){ // Insere o elemento, no nosso caso o vertice, na estrutura FILA.
+	NO_FILA *no = (NO_FILA*) malloc(sizeof(NO_FILA*));
+	no->vertice = vertice;
+	no->prox = NULL;
+	if(filaVazia(fila)) fila->inicio, fila->fim = no;
+	else {
+		fila->fim->prox = no;
+		fila->fim = no;
+	}
+}
+
+
+int pegaFila(FILA *fila){ // Pega o primeiro elemento (vertice que está no inicio da fila) da estrutura FILA.
+	int vertice = fila->inicio->vertice;
+	NO_FILA *aux = fila->inicio;
+	fila->inicio = fila->inicio->prox;
+	free(aux);
+	return vertice;
+}
+
+
+void destroiFila(FILA *fila){ // Destroi a estrutura FILA liberando seu espaço em memória.
+	free(fila);
+}
+
+// ICARO: A cima estão definidas (se eu não me esqueci de alguma) todas as funções necessárias para operar a estrutura FILA dentro do nosso algoritmo de busca (Dijkstra).
+
 void abrirSalas(VERTICE *g, int N){ // Função para abertura de todas as salas (somente caso encontre a chave)
 	int i;
 	for(i = 0; i<N ; ++i){
@@ -59,7 +102,7 @@ void abrirSalas(VERTICE *g, int N){ // Função para abertura de todas as salas 
 	}
 }
 
-VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto){ // Cria um grafo em lista de adjacencias e já o inicializa.
+VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto){ // Cria um grafo em lista de adjacencias e já o inicializa com os parâmetros fornecidos.
 	VERTICE * grafo = (VERTICE *) malloc(sizeof(VERTICE*)*v);
 	int i,j;
 	for(i = 0; i<v; ++i){
@@ -80,30 +123,51 @@ VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto){ // Cria um grafo 
 }
 
 
-
-void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo){ // ICARO: Algoritmo de busca que acredito ser o mais indicado para situação/problema.
+void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave){ // ICARO: Algoritmo de busca que acredito ser o mais indicado para situação/problema.
 	// inicializa as dist (peso das arestas) e vias (por qual vertice estou acessando o vertice atual) dos vertices, respectivamente, em infinito e 0.
 	int i,j;
 	for(i = 0; i<v; ++i){
 		g[i].dist = 2147483647/2; // Para não termos problemas de estourar o limite de bytes de um int pegamos o maior inteiro possível e dividimos por 2.
 		g[i].via = 0;
 	}
-	g[origem].dist = 0; // A dist do vertice inicial inicializa em 0.
+	g[origem].dist = 0; // A dist do vertice inicial inicializa em 0 pelo fato de não termos percorrido ainda nenhuma distância.
+	g[origem].flag  = 1;
+	FILA *fila = criaFilaVazia();
+	insereFila(fila, origem);
 
-	/* ICARO: 
-	A partir daqui estava iniciando a inicialização da estrutura FILA 
-	*Observação: acho melhor criar funções para criação/inicializa/inserção/pegar elemento/destruição da fila
-	realizar estas operações dentro da buscaDijkstra vai deixa o código/função/estrutura muito sujo e zuado
-	por enquanto vou deixa o inicio dela abaixo porém assim que der vou transferir pra funções externas e só chama-las
-	dentro da buscaDijkstra
-	*/
-	NO_FILA *aux = (NO_FILA*) malloc(sizeof(NO_FILA*));
-	aux->vertice = origem;
-	aux->prox = NULL;
-	FILA *fila;
-	fila->inicio->vertice, fila->fim->vertice = aux->vertice;
-	fila->inicio, fila->fim = aux;
+	while(!filaVazia(fila)){
+	/* ICARO: Está e a parte principal do algoritmo, acho que consegui realizar verificações básicas como: inserir elementos na FILA, alterar sua Flag,
+	após isto pegar o vertice da fila, pegar todos os seus adjacentese ai entrar em outro laço este sendo enquanto há vertices adjacentes, após isso
+	verificar se este adjacente atual está aberto, caso aberto verificar se do vertice atual até o vertice adjacente atual a distancia é menor da que
+	o vertice adjacente guarda, se sim alteramos o melhor (neste caso, o menor) caminho aquele que vem do vertice atual e a nova distancia do vertice
+	inicial até este vertice adjacente. Após isso mudamos a Flag deste vertice adjacente para 1 e inserimos na FILA. Depois de realizar esse processo 
+	para todos os vertices adjacentes do vertice atual marcamos a Flag do vertice atual como 2 (oque significa que já verificamos todos os seus adjacentes)
+	e repetimos o processo para um novo vertice pegando ele da fila, sendo sempre o que está no inicio dela.
 	
+	OQUE FALTA: Acho que verificar se está fazendo tudo isso que citei acima corretamente e se sim implementar a parte que vamos até o vertice Objetivo e 
+	pegamos a sua distância e as vias (o caminho do inicial até ele) e devolvemos para assim podermos inciar os teste até conseguir compilar e executar o
+	primeito teste no MAIN deixado pelo professor.
+	*/
+		int vertice = pegaFila(fila);
+		if(g[vertice].flag == 1){
+			NO *adj = g[vertice].inicio;
+			while(adj){
+				if(g[adj->adj].aberto){
+
+					if((g[vertice].dist + adj->peso) < g[adj->adj].dist){
+							g[adj->adj].via = vertice;
+							g[adj->adj].dist = g[vertice].dist + adj->peso;
+						}
+						
+						if(adj->adj == chave) abrirSalas(g, v);
+						g[adj->adj].flag = 1;
+						insereFila(fila, adj->adj);
+				}
+	
+			}
+			g[vertice].flag = 2;
+		}
+	}
 }
 
 

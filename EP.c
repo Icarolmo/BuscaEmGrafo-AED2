@@ -105,7 +105,7 @@ void destroiFila(FILA *fila)
 void abrirSalas(VERTICE *g, int N)
 { // Função para abertura de todas as salas (somente caso encontre a chave)
 	int i;
-	for (i = 0; i < N; ++i)
+	for (i = 0; i < N; i++)
 	{
 		g[i].aberto = 1;
 	}
@@ -115,7 +115,7 @@ VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto)
 { // Cria um grafo em lista de adjacencias e já o inicializa com os parâmetros fornecidos.
 	VERTICE *grafo = (VERTICE *)malloc(sizeof(VERTICE *) * v);
 	int i, j;
-	for (i = 0; i < v; ++i)
+	for (i = 0; i < v; i++)
 	{
 		grafo[i].aberto = aberto[i];
 		grafo[i].flag = 0;
@@ -139,84 +139,47 @@ void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave)
 { // ICARO: Algoritmo de busca que acredito ser o mais indicado para situação/problema.
 	// inicializa as dist (peso das arestas) e vias (por qual vertice estou acessando o vertice atual) dos vertices, respectivamente, em infinito e 0 (acredito que deva ser -1).
 	int i, j;
-	for (i = 0; i < v; ++i)
+	for (i = 0; i < v; i++)
 	{
 		g[i].dist = 2147483647 / 2; // Para não termos problemas de estourar o limite de bytes de um int pegamos o maior inteiro possível e dividimos por 2.
 		g[i].via = -1;				// WESLEY: Aqui precisamos iniciar com -1, se eu não estiver enganado, para sinalizar que não temos caminho ainda
 	}
-	g[origem].dist = 0; // A dist do vertice inicial inicializa em 0 pelo fato de não termos percorrido ainda nenhuma distância.
-	g[origem].flag = 1;
+	g[origem - 1].dist = 0; // A dist do vertice inicial inicializa em 0 pelo fato de não termos percorrido ainda nenhuma distância.
+	g[origem - 1].flag = 1;
 	FILA *fila = criaFilaVazia();
 	insereFila(fila, origem);
 
 	while (!filaVazia(fila))
 	{
-		/* ICARO: Está e a parte principal do algoritmo, acho que consegui realizar verificações básicas como: inserir elementos na FILA, alterar sua Flag,
-		após isto pegar o vertice da fila, pegar todos os seus adjacentese ai entrar em outro laço este sendo enquanto há vertices adjacentes, após isso
-		verificar se este adjacente atual está aberto, caso aberto verificar se do vertice atual até o vertice adjacente atual a distancia é menor da que
-		o vertice adjacente guarda, se sim alteramos o melhor (neste caso, o menor) caminho aquele que vem do vertice atual e a nova distancia do vertice
-		inicial até este vertice adjacente. Após isso mudamos a Flag deste vertice adjacente para 1 e inserimos na FILA. Depois de realizar esse processo
-		para todos os vertices adjacentes do vertice atual marcamos a Flag do vertice atual como 2 (oque significa que já verificamos todos os seus adjacentes)
-		e repetimos o processo para um novo vertice pegando ele da fila, sendo sempre o que está no inicio dela.
-
-		OQUE FALTA: Acho que verificar se está fazendo tudo isso que citei acima corretamente e se sim implementar a parte que vamos até o vertice Objetivo e
-		pegamos a sua distância e as vias (o caminho do inicial até ele) e devolvemos para assim podermos inciar os teste até conseguir compilar e executar o
-		primeito teste no MAIN deixado pelo professor.
-		*/
 		int vertice = pegaFila(fila);
-		if (g[vertice].flag == 1)
+		if (g[vertice - 1].flag == 1)
 		{
-			NO *adj = g[vertice].inicio;
+			NO *adj = g[vertice - 1].inicio;
 			while (adj)
 			{
-				if (g[adj->adj].aberto)
+				if (g[adj->adj - 1].aberto)
 				{
+					g[adj->adj - 1].flag = 1;
+					insereFila(fila, adj->adj);
 
-					if ((g[vertice].dist + adj->peso) < g[adj->adj].dist)
+					if ((g[vertice - 1].dist + adj->peso) < g[adj->adj - 1].dist)
 					{
-						g[adj->adj].via = vertice;
-						g[adj->adj].dist = g[vertice].dist + adj->peso;
-						if (adj->adj == objetivo)
-							break; // WESLEY: se chegou ao objetiv, para de buscar
+						g[adj->adj - 1].via = vertice;
+						g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
 					}
 
 					if (adj->adj == chave)
 					{
 						abrirSalas(g, v);
-						g[adj->adj].flag = 1;
-						insereFila(fila, adj->adj);
 					}
+
 				}
-				adj = adj->prox; // WESLEY: Aqui precisamos atualizar o adj para não cair em um loop infinito e imutável
+				adj = adj->prox;
 			}
 			g[vertice].flag = 2;
 		}
-		if (vertice == objetivo)
-			break; // WESLEY: Implementei outra parada para o caso de havermos achado o objetivo
 	}
-	// agora, se chegou ao objetivo, monta o caminho a partir das vias
-	if ((g[objetivo].via != -1))
-	{
-		int caminho[v];
-		int atual = objetivo;
-		int tamanho = 0;
-		while (atual != origem)
-		{
-			caminho(tamanho++) = atual;
-			atual = g[atual.via];
-		}
-		caminho[caminho++] = origem;
-		printf("Caminho: ");
-		for (i = tamanho - 1; i >= 0; i--)
-		{
-			printf("%d ", caminho[i]);
-			printf("\n Distancia: %d\n", g[objetivo].dist)
-		}
-		else
-		{
-			printf("Não há caminho entre os vertices %d e %d", origem, objetivo)
-		}
-	}
+	
 }
 
 // funcao principal
@@ -230,9 +193,35 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 {
 	VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
 
-	buscaDijkstra(g, N, inicio - 1, fim - 1, chave - 1);
+	buscaDijkstra(g, N, inicio, fim, chave);
 
-	NO *caminho = NULL;
+	NO *percurso, *aux = { NULL };
+
+	if(g[fim - 1].via == -1) 
+		return percurso;
+
+	percurso->peso = g[fim - 1].dist;
+	percurso->adj = fim;
+	int vAnterior = g[fim - 1].via;
+
+	while(vAnterior != -1)
+	{	
+		aux->peso = g[vAnterior - 1].dist;
+		aux->adj = vAnterior;
+		aux->prox = percurso;
+		percurso = aux;
+		vAnterior = g[vAnterior - 1].via;
+	}
+
+	free(g);
+	return percurso;
+}
+
+	// Aqui finalizaria o EP.
+
+	/*
+	 ICARO: o código abaixo não tivemos tempo de discuti sobre, quando possível vemos se faz necessário ou apenas 
+	 acima já sana o problema de revolução do caminho para o usuário.
 	if (g[fim - 1].dist != 2147483647 / 2)
 	{
 		int atual = fim - 1;
@@ -258,6 +247,8 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 	free(g);
 	return caminho;
 }
+	*/
+
 
 //---------------------------------------------------------
 // use main() para fazer chamadas de teste ao seu programa

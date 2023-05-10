@@ -118,12 +118,12 @@ VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto)
 	for (i = 0; i < v; i++)
 	{
 		grafo[i].aberto = aberto[i];
-		grafo[i].flag = 0;
 		grafo[i].inicio = NULL;
 		for (j = 0; j < a * 3; j = j + 3)
 		{
 			if (ijpeso[j] == i)
 			{
+				// ICARO: pelo fato do grafo não ser dirigido temos que inicializar ambos os vertices como adjacentes
 				NO *aux = (NO *)malloc(sizeof(NO *));
 				aux->adj = ijpeso[j + 1];
 				aux->peso = ijpeso[j + 2];
@@ -135,18 +135,96 @@ VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto)
 	return grafo;
 }
 
-void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave)
-{ // ICARO: Algoritmo de busca que acredito ser o mais indicado para situação/problema.
-	// inicializa as dist (peso das arestas) e vias (por qual vertice estou acessando o vertice atual) dos vertices, respectivamente, em infinito e 0 (acredito que deva ser -1).
+
+
+VERTICE *criaGrafoTran(int v, int a, int *ijpeso, int *aberto)
+{
+	VERTICE *gTrans = (VERTICE *) malloc(sizeof(VERTICE *)*v); 
+	int i, j;
+	for(i = 0; i<v; i++)
+	{
+		gTrans[i].aberto = aberto[i];
+		gTrans[i].inicio = NULL;
+		for (j = 1; j < a * 3; j = j + 3)
+		{
+			if (ijpeso[j] == i)
+			{
+				NO *aux = (NO *)malloc(sizeof(NO *));
+				aux->adj = ijpeso[j - 1];
+				aux->peso = ijpeso[j + 1];
+				aux->prox = gTrans[i].inicio;
+				gTrans[i].inicio = aux;
+			}
+		}
+	}
+	return gTrans;
+}
+
+void zeraFlags(VERTICE *g, int v)
+{
+	int i;
+	for(i = 0; i<v; i++)
+	{
+		g[i].flag = 0;
+	}
+}
+
+void inicializaGrafoAdj(VERTICE *g, int v, int origem) // ICARO: função para inicialização do grafo, retirada de dentro da função de busca.
+{
 	int i, j;
 	for (i = 0; i < v; i++)
 	{
-		g[i].dist = 2147483647 / 2; // Para não termos problemas de estourar o limite de bytes de um int pegamos o maior inteiro possível e dividimos por 2.
-		g[i].via = -1;				// WESLEY: Aqui precisamos iniciar com -1, se eu não estiver enganado, para sinalizar que não temos caminho ainda
+		g[i].dist = 2147483647 / 2; 
+		g[i].via = -1;				
 	}
-	g[origem - 1].dist = 0; // A dist do vertice inicial inicializa em 0 pelo fato de não termos percorrido ainda nenhuma distância.
+	g[origem - 1].dist = 0; 
 	g[origem - 1].flag = 1;
+}
+
+
+int buscaChave(VERTICE *g, int v, int origem, int chave)
+{
 	FILA *fila = criaFilaVazia();
+	zeraFlags(g, v);
+	g[origem -1].flag = 1;	
+	insereFila(fila, origem);
+
+	while (!filaVazia(fila))
+	{
+		int vertice = pegaFila(fila);
+		if (g[vertice - 1].flag == 1)
+		{
+			NO *adj = g[vertice - 1].inicio;
+			while (adj)
+			{
+				if ((g[vertice - 1].dist + adj->peso) < g[adj->adj - 1].dist)
+				{
+					g[adj->adj - 1].via = vertice;
+					g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
+				}
+
+				if(adj->adj == chave){
+					destroiFila(fila);
+					return g[adj->adj - 1].dist;
+				}
+				
+				g[adj->adj - 1].flag = 1;
+				insereFila(fila, adj->adj);
+				
+				adj = adj->prox;
+			}
+			g[vertice].flag = 2;
+		}
+	}
+	return 0;
+}
+
+
+void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave)
+{ 	
+	FILA *fila = criaFilaVazia();
+	zeraFlags(g, v);
+	g[origem -1].flag = 1;
 	insereFila(fila, origem);
 
 	while (!filaVazia(fila))
@@ -168,8 +246,9 @@ void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave)
 						g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
 					}
 
-					if (adj->adj == chave)
-					{
+					if (adj->adj == chave) 
+					{ /*ICARO: para a busca do vertice inicio até o fim (sem o inicio partir do vertice chave) vamos precisar realizar essa verificação 
+					 	e para reaproveitar essa mesma função para os dois cenários mantive esta verificação mas ainda vou ver um modo mais eficiênte (se possível)*/
 						abrirSalas(g, v);
 					}
 
@@ -192,6 +271,12 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
 	VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
+	if(buscaChave(g, N, inicio, chave)){
+		abrirSalas(g, N);
+		buscaDijkstra(g, N, chave, fim, -1);
+	} 
+
+	VERTICE *gTran = criaGrafoTran(N, A, ijpeso, aberto);
 
 	buscaDijkstra(g, N, inicio, fim, chave);
 

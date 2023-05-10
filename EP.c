@@ -42,14 +42,18 @@ typedef struct
 
 // ICARO: A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES ANTES DA FUNÇÃO PRINCIPAL CAMINHO
 
+
+// Estrutura nó da Fila em lista ligada que será utilizada no algoritmo de busca (Dijkstra).
 typedef struct noFila
-{ // Estrutura nó da Fila em lista ligada que será implementada no algoritmo de busca.
+{ 
 	int vertice;
 	struct noFila *prox;
 } NO_FILA;
 
+
+// Estrutura FILA implementada em lista ligada.
 typedef struct fila
-{ // Estrutura da respectiva Fila em lista ligada.
+{ 
 	NO_FILA *inicio;
 	NO_FILA *fim;
 } FILA;
@@ -57,23 +61,29 @@ typedef struct fila
 // ICARO: Acima está a estrutura ideal (no meu entender) para a FILA que será necessária no algoritmo de Dijkstra.
 // A partir daqui realizei a implementação de algumas funções para manipular a FILA para utilizarmos dentro do algoritmo de busca (Dijkstra).
 
+
+// Retorna uma estrutura FILA vazia (fila->inicio, fila->fim = NULL)
 FILA *criaFilaVazia()
-{ // Cria a estrutura FILA vazia com seu inicio e fim apontando para NULL.
+{
 	FILA *fila = (FILA *)malloc(sizeof(FILA *));
 	fila->fim, fila->inicio = NULL;
 	return fila;
 }
 
+
+// Verifica se a FILA está vazia, retorna TRUE se estiver vazia e FALSE se tiver um ou mais elementos.
 int filaVazia(FILA *fila)
-{ // Verifica se a estrutura FILA está vazia
+{ 
 	if (fila->inicio)
 		return 0;
 	else
 		return 1;
 }
 
+
+// Insere o elemento, no caso o vertice, na FILA.
 void insereFila(FILA *fila, int vertice)
-{ // Insere o elemento, no nosso caso o vertice, na estrutura FILA.
+{
 	NO_FILA *no = (NO_FILA *)malloc(sizeof(NO_FILA *));
 	no->vertice = vertice;
 	no->prox = NULL;
@@ -86,8 +96,10 @@ void insereFila(FILA *fila, int vertice)
 	}
 }
 
+
+// Pega o primeiro vértice (apontado pelo fila->inicio->vertice) da FILA.
 int pegaFila(FILA *fila)
-{ // Pega o primeiro elemento (vertice que está no inicio da fila) da estrutura FILA.
+{ 
 	int vertice = fila->inicio->vertice;
 	NO_FILA *aux = fila->inicio;
 	fila->inicio = fila->inicio->prox;
@@ -95,15 +107,17 @@ int pegaFila(FILA *fila)
 	return vertice;
 }
 
+
+// Destroi a FILA liberando seu espaço em memória.
 void destroiFila(FILA *fila)
-{ // Destroi a estrutura FILA liberando seu espaço em memória.
+{ 
 	free(fila);
 }
 
-// ICARO: A cima estão definidas (se eu não me esqueci de alguma) todas as funções necessárias para operar a estrutura FILA dentro do nosso algoritmo de busca (Dijkstra).
 
+// Realiza abertura de todos os vertices, chamada somente no momento de descoberta do vértice chave.
 void abrirSalas(VERTICE *g, int N)
-{ // Função para abertura de todas as salas (somente caso encontre a chave)
+{ 
 	int i;
 	for (i = 0; i < N; i++)
 	{
@@ -111,32 +125,38 @@ void abrirSalas(VERTICE *g, int N)
 	}
 }
 
+
+// Cria um grafo em lista de adjacencias e já o inicializa variáveis padrão.
 VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto)
-{ // Cria um grafo em lista de adjacencias e já o inicializa com os parâmetros fornecidos.
+{ 
 	VERTICE *grafo = (VERTICE *)malloc(sizeof(VERTICE *) * v);
 	int i, j;
-	for (i = 0; i < v; i++)
+	for(i = 0; i < v; i++)
 	{
 		grafo[i].aberto = aberto[i];
 		grafo[i].inicio = NULL;
-		for (j = 0; j < a * 3; j = j + 3)
-		{
-			if (ijpeso[j] == i)
-			{
-				// ICARO: pelo fato do grafo não ser dirigido temos que inicializar ambos os vertices como adjacentes
-				NO *aux = (NO *)malloc(sizeof(NO *));
-				aux->adj = ijpeso[j + 1];
-				aux->peso = ijpeso[j + 2];
-				aux->prox = grafo[i].inicio;
-				grafo[i].inicio = aux;
-			}
-		}
+	}
+	for(j = 0; j < a * 3; j = j + 3)
+	{
+		int v1 = ijpeso[j];
+		int v2 = ijpeso[j + 1];
+		int pesoAresta = ijpeso[j + 2]; 
+		NO *aux;
+
+		aux->adj = v2;
+		aux->peso = pesoAresta;
+		aux->prox = grafo[v1 - 1].inicio;
+		grafo[v1 - 1].inicio = aux;
+
+		aux->adj = v1;
+		aux->prox = grafo[v2 - 1].inicio;
+		grafo[v2 - 1].inicio = aux;
 	}
 	return grafo;
 }
 
 
-
+/* Cria grafo transposto do grafo principal (necessario a análise da necessidade da/do função/grafo)
 VERTICE *criaGrafoTran(int v, int a, int *ijpeso, int *aberto)
 {
 	VERTICE *gTrans = (VERTICE *) malloc(sizeof(VERTICE *)*v); 
@@ -159,6 +179,8 @@ VERTICE *criaGrafoTran(int v, int a, int *ijpeso, int *aberto)
 	}
 	return gTrans;
 }
+*/
+
 
 void zeraFlags(VERTICE *g, int v)
 {
@@ -169,9 +191,10 @@ void zeraFlags(VERTICE *g, int v)
 	}
 }
 
+// Inicializa variáveis distância e via do grafo, respectivamente com infinito e -1 (também inicializa o vertice origem).
 void inicializaGrafoAdj(VERTICE *g, int v, int origem) // ICARO: função para inicialização do grafo, retirada de dentro da função de busca.
 {
-	int i, j;
+	int i;
 	for (i = 0; i < v; i++)
 	{
 		g[i].dist = 2147483647 / 2; 
@@ -181,7 +204,7 @@ void inicializaGrafoAdj(VERTICE *g, int v, int origem) // ICARO: função para i
 	g[origem - 1].flag = 1;
 }
 
-
+// Realiza a busca usando Dijkstra porém com vértice objetivo sendo o vertice que contém a chave.
 int buscaChave(VERTICE *g, int v, int origem, int chave)
 {
 	FILA *fila = criaFilaVazia();
@@ -219,7 +242,7 @@ int buscaChave(VERTICE *g, int v, int origem, int chave)
 	return 0;
 }
 
-
+// Realiza a busca usando Dijkstra da forma convêncional (computando a menor distância em todos os vértices alcançáveis a partir do vértice origem).
 void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave)
 { 	
 	FILA *fila = criaFilaVazia();
@@ -271,69 +294,53 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
 	VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
+	NO *percursoComChave, *percursoSemChave, *aux = { NULL };
+	int distanciaSemChave, distanciaComChave;
+
 	if(buscaChave(g, N, inicio, chave)){
 		abrirSalas(g, N);
 		buscaDijkstra(g, N, chave, fim, -1);
-	} 
+		
+		percursoComChave->adj = fim;
+		percursoComChave->peso, distanciaComChave = g[fim - 1].dist;
+		int vAnterior = g[fim - 1].via;
 
-	VERTICE *gTran = criaGrafoTran(N, A, ijpeso, aberto);
+		while(vAnterior != -1)
+		{	
+			aux->peso = g[vAnterior - 1].dist;
+			aux->adj = vAnterior;
+			aux->prox = percursoComChave;
+			percursoComChave = aux;
+			vAnterior = g[vAnterior - 1].via;
+		}
+
+	} 
+	// Aqui temos que realizar uma nova inicialização no grafo para deixa ele "zerado"
+	// e assim realizar novamente a busca porém sem usar a chave.
 
 	buscaDijkstra(g, N, inicio, fim, chave);
-
-	NO *percurso, *aux = { NULL };
-
-	if(g[fim - 1].via == -1) 
-		return percurso;
-
-	percurso->peso = g[fim - 1].dist;
-	percurso->adj = fim;
+	
+	percursoSemChave->adj = fim;
+	percursoSemChave->peso, distanciaSemChave = g[fim - 1].dist;
 	int vAnterior = g[fim - 1].via;
 
 	while(vAnterior != -1)
 	{	
 		aux->peso = g[vAnterior - 1].dist;
 		aux->adj = vAnterior;
-		aux->prox = percurso;
-		percurso = aux;
+		aux->prox = percursoSemChave;
+		percursoSemChave = aux;
+
 		vAnterior = g[vAnterior - 1].via;
 	}
 
 	free(g);
-	return percurso;
+	if(distanciaComChave > distanciaSemChave) 
+		return percursoSemChave;
+	else
+		return percursoComChave;
 }
-
 	// Aqui finalizaria o EP.
-
-	/*
-	 ICARO: o código abaixo não tivemos tempo de discuti sobre, quando possível vemos se faz necessário ou apenas 
-	 acima já sana o problema de revolução do caminho para o usuário.
-	if (g[fim - 1].dist != 2147483647 / 2)
-	{
-		int atual = fim - 1;
-		while (atual != inicio - 1)
-		{
-			NO *novo = (NO *)malloc(sizeof(NO));
-			novo->adj = atual + 1;
-			novo->prox = caminho;
-			caminho = novo;
-			atual = g[atual].via;
-		}
-		NO *novo = (NO *)malloc(sizeof(NO));
-		novo->adj = atual + 1;
-		novo->prox = caminho;
-		caminho = novo;
-	}
-
-	if (g[chave - 1].dist != 2147483647 / 2)
-	{
-		abrirSalas(g, N);
-	}
-
-	free(g);
-	return caminho;
-}
-	*/
-
 
 //---------------------------------------------------------
 // use main() para fazer chamadas de teste ao seu programa

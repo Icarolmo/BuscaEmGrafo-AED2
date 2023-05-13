@@ -118,7 +118,7 @@ void abrirSalas(VERTICE *g, int N)
 }
 
 // Cria um grafo em lista de adjacencias e já o inicializa variáveis padrão.
-VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto)
+VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto) // WESLEY: fiz algumas alterações nessa função, agora os campos adj e peso estão começãndo com valor -1, a função foi testada e funciona
 {
 	VERTICE *grafo = (VERTICE *)malloc(sizeof(VERTICE) * (v + 1)); // aloca memória para o grafo
 

@@ -219,27 +219,25 @@ int buscaChave(VERTICE *g, int v, int origem, int chave)
 			NO *adj = g[vertice - 1].inicio;
 			while (adj)
 			{
-				if ((g[vertice - 1].dist + adj->peso) < g[adj->adj - 1].dist)
+				if (g[adj->adj - 1].aberto != 0)
 				{
-					g[adj->adj - 1].via = vertice;
-					g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
+					if ((g[vertice - 1].dist + adj->peso) < g[adj->adj - 1].dist)
+					{
+						g[adj->adj - 1].via = vertice;
+						g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
+					}
+
+					g[adj->adj - 1].flag = 1;
+					insereFila(fila, adj->adj);
+
+					adj = adj->prox;
 				}
-
-				if (adj->adj == chave)
-				{
-					destroiFila(fila);
-					return g[adj->adj - 1].dist;
-				}
-
-				g[adj->adj - 1].flag = 1;
-				insereFila(fila, adj->adj);
-
-				adj = adj->prox;
 			}
 			g[vertice].flag = 2;
 		}
 	}
-	return 0;
+	if (g[chave])
+		return 0;
 }
 
 // Realiza a busca usando Dijkstra da forma convêncional (computando a menor distância em todos os vértices alcançáveis a partir do vértice origem).
@@ -268,12 +266,6 @@ void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave)
 						g[adj->adj - 1].via = vertice;
 						g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
 					}
-
-					if (adj->adj == chave)
-					{ /*ICARO: para a busca do vertice inicio até o fim (sem o inicio partir do vertice chave) vamos precisar realizar essa verificação
-						e para reaproveitar essa mesma função para os dois cenários mantive esta verificação mas ainda vou ver um modo mais eficiênte (se possível)*/
-						abrirSalas(g, v);
-					}
 				}
 				adj = adj->prox;
 			}
@@ -292,13 +284,13 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
 	VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
-	NO *percursoComChave, *percursoSemChave, *aux = {NULL};
+	NO *percursoComChave = NULL, *percursoSemChave = NULL, *aux = NULL;
 	int distanciaSemChave, distanciaComChave;
 
 	if (buscaChave(g, N, inicio, chave))
 	{
 		abrirSalas(g, N);
-		buscaDijkstra(g, N, chave, fim, -1);
+		buscaDijkstra(g, N, chave, fim);
 
 		percursoComChave->adj = fim;
 		percursoComChave->peso, distanciaComChave = g[fim - 1].dist;
@@ -405,6 +397,7 @@ int main()
 		8, 10, 2};
 
 	VERTICE *grafo = criaGrafoAdj(N, A, ijpeso, aberto);
+	// inicializaGrafoAdj(grafo, N, inicio);
 	imprimeGrafoAdj(grafo, N);
 }
 

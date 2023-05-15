@@ -63,7 +63,7 @@ typedef struct fila
 FILA *criaFilaVazia()
 {
     FILA *fila = (FILA *)malloc(sizeof(FILA *));
-    fila->fim, fila->inicio = NULL;
+    fila->fim = NULL, fila->inicio = NULL;
     return fila;
 }
 
@@ -83,7 +83,7 @@ void insereFila(FILA *fila, int vertice)
     no->vertice = vertice;
     no->prox = NULL;
     if (filaVazia(fila))
-        fila->inicio, fila->fim = no;
+        fila->inicio = no, fila->fim = no;
     else
     {
         fila->fim->prox = no;
@@ -129,6 +129,7 @@ VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto) // WESLEY: fiz alg
         novo_no->peso = -1;
         novo_no->prox = NULL;
         grafo[i].inicio = novo_no;
+        grafo[i].aberto = aberto[i];
     }
 
     // percorre o vetor ijpeso para criar as arestas
@@ -181,7 +182,7 @@ VERTICE *criaGrafoTran(int v, int a, int *ijpeso, int *aberto)
 }
 */
 
-void zeraFlags(VERTICE *g, int v)
+void zeraFlags(VERTICE *g, int v) // FUNCIONANDO CORRETAMENTE
 {
     int i;
     for (i = 0; i < v; i++)
@@ -199,136 +200,24 @@ void inicializaGrafoAdj(VERTICE *g, int v, int origem) // ICARO: função para i
         g[i].dist = 2147483647 / 2;
         g[i].via = -1;
     }
-    g[origem - 1].dist = 0;
-    g[origem - 1].flag = 1;
-}
+    g[origem].dist = 0;
+    g[origem].flag = 1;
+} // FAZER TESTES
 
-// Realiza a busca usando Dijkstra porém com vértice objetivo sendo o vertice que contém a chave.
-int buscaChave(VERTICE *g, int v, int origem, int chave)
+void imprimeGrafoInicializado(VERTICE *g, int v, int origem)
 {
-    FILA *fila = criaFilaVazia();
-    zeraFlags(g, v);
-    g[origem - 1].flag = 1;
-    insereFila(fila, origem);
-
-    while (!filaVazia(fila))
+    int i;
+    for (i = 0; i < v; i++)
     {
-        int vertice = pegaFila(fila);
-        if (g[vertice - 1].flag == 1)
+        if (i == origem)
         {
-            NO *adj = g[vertice - 1].inicio;
-            while (adj)
-            {
-                if (g[adj->adj - 1].aberto != 0)
-                {
-                    if ((g[vertice - 1].dist + adj->peso) < g[adj->adj - 1].dist)
-                    {
-                        g[adj->adj - 1].via = vertice;
-                        g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
-                    }
-
-                    g[adj->adj - 1].flag = 1;
-                    insereFila(fila, adj->adj);
-
-                    adj = adj->prox;
-                }
-            }
-            g[vertice].flag = 2;
+            printf("\nO vertice %d eh a origem e tem distancia %d, via %d, flag %d e o booleano de aberto %d\n\n", i, g[i].dist, g[i].via, g[i].flag, g[i].aberto);
+        }
+        else
+        {
+            printf("O vertice %d tem distancia %d, via %d, flag %d e o booleano de aberto %d\n", i, g[i].dist, g[i].via, g[i].flag, g[i].aberto);
         }
     }
-    if (g[chave])
-        return 0;
-}
-
-// Realiza a busca usando Dijkstra da forma convêncional (computando a menor distância em todos os vértices alcançáveis a partir do vértice origem).
-void buscaDijkstra(VERTICE *g, int v, int origem, int objetivo, int chave)
-{
-    FILA *fila = criaFilaVazia();
-    zeraFlags(g, v);
-    g[origem - 1].flag = 1;
-    insereFila(fila, origem);
-
-    while (!filaVazia(fila))
-    {
-        int vertice = pegaFila(fila);
-        if (g[vertice - 1].flag == 1)
-        {
-            NO *adj = g[vertice - 1].inicio;
-            while (adj)
-            {
-                if (g[adj->adj - 1].aberto)
-                {
-                    g[adj->adj - 1].flag = 1;
-                    insereFila(fila, adj->adj);
-
-                    if ((g[vertice - 1].dist + adj->peso) < g[adj->adj - 1].dist)
-                    {
-                        g[adj->adj - 1].via = vertice;
-                        g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
-                    }
-                }
-                adj = adj->prox;
-            }
-            g[vertice].flag = 2;
-        }
-    }
-}
-
-// funcao principal
-NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave);
-//------------------------------------------
-// O EP consiste em implementar esta funcao
-// e outras funcoes auxiliares que esta
-// necessitar
-//------------------------------------------
-NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
-{
-    VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
-    NO *percursoComChave = NULL, *percursoSemChave = NULL, *aux = NULL;
-    int distanciaSemChave, distanciaComChave;
-
-    if (buscaChave(g, N, inicio, chave))
-    {
-        abrirSalas(g, N);
-        buscaDijkstra(g, N, chave, fim);
-
-        percursoComChave->adj = fim;
-        percursoComChave->peso, distanciaComChave = g[fim - 1].dist;
-        int vAnterior = g[fim - 1].via;
-
-        while (vAnterior != -1)
-        {
-            aux->peso = g[vAnterior - 1].dist;
-            aux->adj = vAnterior;
-            aux->prox = percursoComChave;
-            percursoComChave = aux;
-            vAnterior = g[vAnterior - 1].via;
-        }
-    }
-    // Aqui temos que realizar uma nova inicialização no grafo para deixa ele "zerado"
-    // e assim realizar novamente a busca porém sem usar a chave.
-
-    buscaDijkstra(g, N, inicio, fim, chave);
-
-    percursoSemChave->adj = fim;
-    percursoSemChave->peso, distanciaSemChave = g[fim - 1].dist;
-    int vAnterior = g[fim - 1].via;
-
-    while (vAnterior != -1)
-    {
-        aux->peso = g[vAnterior - 1].dist;
-        aux->adj = vAnterior;
-        aux->prox = percursoSemChave;
-        percursoSemChave = aux;
-
-        vAnterior = g[vAnterior - 1].via;
-    }
-
-    free(g);
-    if (distanciaComChave > distanciaSemChave)
-        return percursoSemChave;
-    else
-        return percursoComChave;
 }
 
 void imprimeGrafoAdj(VERTICE *grafo, int V) // WESLEY: Criei essa função para verificar se a função criaGrafoAdj estava funcionando
@@ -344,6 +233,17 @@ void imprimeGrafoAdj(VERTICE *grafo, int V) // WESLEY: Criei essa função para 
             atual = atual->prox;
         }
         printf("\n");
+    }
+}
+
+void imprimeFlagVertices(VERTICE *grafo, int V)
+{
+
+    int i;
+
+    for (i = 0; i < V; i++)
+    {
+        printf("\nO vertice %d tem a flag %d", V, grafo[i].flag);
     }
 }
 // Aqui finalizaria o EP.
@@ -373,9 +273,9 @@ int main()
 
     // WESLEY: aqui criei um novo grafo para que possamos testar o algoritmo, comentei o teste original no código acima
     // A imagem do grafo se encontra um pouco depois a implementação das características do novo grafo
-    int N = 10; // grafo de 3 vértices numerados de 1..3
+    int N = 10;
     int A = 15;
-    int aberto[] = {1, 4, 5, 6, 10}; // todos abertos
+    int aberto[] = {1, 0, 0, 1, 1, 1, 0, 0, 0, 1}; // todos abertos
     int inicio = 4;
     int fim = 9;
     int chave = 10;
@@ -397,8 +297,13 @@ int main()
         8, 10, 2};
 
     VERTICE *grafo = criaGrafoAdj(N, A, ijpeso, aberto);
-    // inicializaGrafoAdj(grafo, N, inicio);
-    imprimeGrafoAdj(grafo, N);
+
+    // WESLEY: Aqui estou fazendo os testes que discutimos e criei algumas funções void auxiliares para printar as informações que queremos
+    inicializaGrafoAdj(grafo, N, inicio);
+    zeraFlags(grafo, N);
+
+    // imprimeFlagVertices(grafo, N); // função void auxiliar, pode ser deletada
+    imprimeGrafoInicializado(grafo, N, inicio);
 }
 
 // por favor nao inclua nenhum código abaixo da função main()

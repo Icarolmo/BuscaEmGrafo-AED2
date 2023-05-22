@@ -351,6 +351,7 @@ int main()
 	NO *teste = NULL;
 	teste = caminho(N, A, ijpeso, aberto, inicio, fim, chave);
 
+
     return 0;
 }
 

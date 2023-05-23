@@ -272,46 +272,57 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 
     NO *percursoComChave = NULL, *percursoSemChave = NULL, *aux = NULL;
     int distanciaSemChave, distanciaComChave;
+    int existeCaminho = 0;
 
     distanciaComChave = buscaDijkstra(g, inicio, chave, N);
 
-    if (distanciaComChave != 0)
+    if (g[chave - 1].via != -1)
     {
         percursoComChave = gravaPercurso(g, chave, 1);
         abrirSalas(g, N);
         inicializaGrafoAdj(g, N, chave);
         g[chave - 1].dist = distanciaComChave;
         distanciaComChave = buscaDijkstra(g, chave, fim, N);
-        aux = gravaPercurso(g, fim, 0); 
-        ultimoElemento->prox = aux->prox;
-    }
-    else
-    {
-        distanciaComChave = 2147483647 / 2;
+        if(g[fim - 1].via != -1){
+            aux = gravaPercurso(g, fim, 0); 
+            ultimoElemento->prox = aux->prox;
+            existeCaminho = 1;
+        } else {
+            distanciaComChave = 2147483647;
+        }
     }
 
     inicializarSalas(g, N, aberto);
     inicializaGrafoAdj(g, N, inicio);
     distanciaSemChave = buscaDijkstra(g, inicio, fim, N);
 
-    if (distanciaSemChave != 0)
+    if (g[fim - 1].via != -1)
+    {
         percursoSemChave = gravaPercurso(g, fim, 0);
+        existeCaminho = 1;
+    }
     else
-        distanciaSemChave = 2147483647 / 2;
+        distanciaSemChave = 2147483647;
 
     free(g);
-    if (distanciaComChave > distanciaSemChave)
-    {
-        free(percursoComChave);
-        return percursoSemChave;
-    }
-    else
-    {
+    if (existeCaminho)
+    {      
+        if(distanciaComChave > distanciaSemChave)
+        {
+            free(percursoComChave);
+            return percursoSemChave;
+        }
+        else
+        {
+            free(percursoSemChave);
+            return percursoComChave;
+        }
+    } else {
         free(percursoSemChave);
-        return percursoComChave;
+        free(percursoComChave);
+        return NULL;
     }
 }
-
 // Aqui finalizaria o EP.
 
 //---------------------------------------------------------
@@ -336,15 +347,15 @@ int main()
     int fim = 4;
     int chave = 6;
     int ijpeso[] = {
-        1, 2, 1,
-        1, 3, 1,
-        2, 6, 1,
+        1, 2, 30,
+        1, 3, 20,
+        2, 6, 20,
         2, 7, 30,
         3, 7, 80,
         3, 4, 20,
         4, 9, 80,
         5, 8, 10,
-        6, 7, 1,
+        6, 7, 10,
         7, 9, 80};
 
 	// // o EP sera testado com uma serie de chamadas como esta

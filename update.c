@@ -1,5 +1,5 @@
 //--------------------------------------------------------------
-// NOMES DOS RESPONSÁVEIS: Icaro Lima de Oliveira E Wesley Gabriel Rosa Fernandes
+// NOMES DOS RESPONSÁVEIS: Icaro Lima de Oliveira e Wesley Gabriel Rosa Fernandes
 //--------------------------------------------------------------
 
 #include <stdio.h>
@@ -40,17 +40,14 @@ typedef struct
     NO *inicio;
 } VERTICE;
 
-
-// ICARO: A PARTIR DAQUI IMPLEMENTAMOS NOSSAS FUNÇÕES E CÓDIGOS AUXILIARES ANTES DA FUNÇÃO PRINCIPAL CAMINHO
-
-// Estrutura nó da Fila que será utilizada no algoritmo de busca (Dijkstra).
+// Nó que irá conter o vertice e seu respectivo peso na fila - Será um array de NO_FILA com tamanho igual a Nº de vertices, utilizaremos na busca Dijkstra.
 typedef struct noFila
 {
     int vertice;
     int distancia;
 } NO_FILA;
 
-// Retorna uma estrutura NO_FILA vazia
+// Cria array de structs NO_FILA com tamanho igual ao parâmetro tamanho e inicializa suas variáveis com valores nulos (vertice = -1 e distancia = 0).
 NO_FILA *criaFilaVazia(int tamanho)
 {
     NO_FILA *fila = (NO_FILA *) malloc(sizeof(NO_FILA) * tamanho);
@@ -60,7 +57,7 @@ NO_FILA *criaFilaVazia(int tamanho)
     return fila;
 }
 
-// Verifica se a FILA está vazia, retorna TRUE se estiver vazia e FALSE se tiver um ou mais elementos.
+// Verifica se existe algum vertice na FILA - Retorna FALSE se existir um ou mais vertices e TRUE se estiver vazia.
 int filaVazia(NO_FILA *fila)
 {
     if( fila[0].vertice != -1)
@@ -69,7 +66,7 @@ int filaVazia(NO_FILA *fila)
         return 1;
 }
 
-// Insere o elemento, no caso o vertice, na FILA.
+// Insere vertice na FILA 
 void insereFila(NO_FILA *fila, int vertice, int distancia)
 {   
     if (filaVazia(fila))
@@ -90,7 +87,7 @@ void insereFila(NO_FILA *fila, int vertice, int distancia)
     }
 }
 
-// Pega o primeiro vértice (apontado pelo fila->inicio->vertice) da FILA.
+// Pega o vertice de maior prioridade (vertice com menor distancia) na fila. 
 int pegaFila(NO_FILA *fila, int tamanho)
 {   
     int menor_distancia = 2147483647;
@@ -115,7 +112,7 @@ int pegaFila(NO_FILA *fila, int tamanho)
     return vertice;
 }
 
-// Realiza abertura de todos os vertices, chamada somente no momento de descoberta do vértice chave.
+// Realiza abertura de todos os vertices.
 void abrirSalas(VERTICE *g, int N)
 {
     int i;
@@ -125,7 +122,7 @@ void abrirSalas(VERTICE *g, int N)
     }
 }
 
-// Possível necessidade, por via das dúvidas deixei aqui.
+// Inicializa a variável aberto dos vértices com seus valores iniciais (valores passados pelo parâmetro int *aberto recebidos na função caminho).
 void inicializarSalas(VERTICE *g, int N, int *aberto)
 {
     int i;
@@ -135,7 +132,7 @@ void inicializarSalas(VERTICE *g, int N, int *aberto)
     }
 }
 
-// Cria um grafo em lista de adjacencias e já o inicializa variáveis padrão.
+// Cria um grafo em lista de adjacencias já inicializado deixando apenas vias e distancias vazias.
 VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto) // WESLEY: fiz algumas alterações nessa função, agora os campos adj e peso estão começãndo com valor -1, a função foi testada e funciona
 {
     VERTICE *grafo = (VERTICE *)malloc(sizeof(VERTICE) * v); // aloca memória para o grafo
@@ -174,7 +171,7 @@ VERTICE *criaGrafoAdj(int v, int a, int *ijpeso, int *aberto) // WESLEY: fiz alg
 }
 
 
-// Inicializa variáveis distância e via do grafo, respectivamente com infinito e -1 (também inicializa o vertice origem).
+// Inicializa vias e distancias (respectivamente com -1 e infinito, exe)
 void inicializaGrafoAdj(VERTICE *g, int v, int origem) // ICARO: função para inicialização do grafo, retirada de dentro da função de busca.
 {
     int i;
@@ -188,7 +185,10 @@ void inicializaGrafoAdj(VERTICE *g, int v, int origem) // ICARO: função para i
     g[origem - 1].flag = 1;
 }
 
+// Variável global auxiliar na gravação do percurso para concatenar a 1ª parte (inicio->chave) com a 2ª parte (chave->fim) da busca Dijkstra.
 NO *ultimoElemento;
+
+// Retorna percurso computado pela buscaDijkstra do vertice inicio até o vertice passado como parâmetro na função. 
 NO *gravaPercurso(VERTICE *g, int vertice, int grava_ultimo_elemento)
 {
     NO *no = (NO *)malloc(sizeof(NO));
@@ -215,9 +215,11 @@ NO *gravaPercurso(VERTICE *g, int vertice, int grava_ultimo_elemento)
 
 
 
-// Realiza a busca usando Dijkstra da forma convêncional (computando a menor distância em todos os vértices alcançáveis a partir do vértice origem).
+// Realiza a busca usando Algorit. Dijkstra e retorna 1 se o vertice fim foi alcançavel e 0 se não foi alcançavel
 int buscaDijkstra(VERTICE *g, int origem, int fim, int v)
 {
+    if(origem <= 0 || fim <= 0)
+        return 0;
     NO_FILA *fila = criaFilaVazia(v);
     insereFila(fila, origem, 0);
 
@@ -226,7 +228,6 @@ int buscaDijkstra(VERTICE *g, int origem, int fim, int v)
         int vertice = pegaFila(fila, v);
         if (g[vertice - 1].flag == 1)
         {
-
             NO *adj = g[vertice - 1].inicio;
             while (adj)
             {
@@ -237,13 +238,11 @@ int buscaDijkstra(VERTICE *g, int origem, int fim, int v)
                         g[adj->adj - 1].via = vertice;
                         g[adj->adj - 1].dist = g[vertice - 1].dist + adj->peso;
                     }
-                
                 if(g[adj->adj - 1].flag == 0)
                 {
                     g[adj->adj - 1].flag = 1;
                     insereFila(fila, adj->adj, g[adj->adj - 1].dist);
                 }
-                
                 }
                 adj = adj->prox;
             }
@@ -253,12 +252,11 @@ int buscaDijkstra(VERTICE *g, int origem, int fim, int v)
 
     free(fila);
     if (g[fim - 1].via != -1)
-        return g[fim - 1].dist;
+        return 1;
     else
         return 0;
 }
 
-// funcao principal
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave);
 //------------------------------------------
 // O EP consiste em implementar esta funcao
@@ -267,63 +265,62 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 //------------------------------------------
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
+    if(inicio <= 0 || fim <= 0)
+        return NULL;
+    
     VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
     inicializaGrafoAdj(g, N, inicio);
-
+    
     NO *percursoComChave = NULL, *percursoSemChave = NULL, *aux = NULL;
-    int distanciaSemChave, distanciaComChave;
-    int existeCaminho = 0;
+    int distanciaComChave = 2147483647, distanciaSemChave = 2147483647, existeCaminho = 0;
 
-    distanciaComChave = buscaDijkstra(g, inicio, chave, N);
+    existeCaminho = buscaDijkstra(g, inicio, chave, N);
 
-    if (g[chave - 1].via != -1)
+    if (existeCaminho)
     {
         percursoComChave = gravaPercurso(g, chave, 1);
+        int dist_aux = g[chave - 1].dist;
         abrirSalas(g, N);
         inicializaGrafoAdj(g, N, chave);
-        g[chave - 1].dist = distanciaComChave;
-        distanciaComChave = buscaDijkstra(g, chave, fim, N);
-        if(g[fim - 1].via != -1){
+        g[chave - 1].dist = dist_aux;
+        existeCaminho = buscaDijkstra(g, chave, fim, N);
+
+        if(existeCaminho)
+        {   
+            distanciaComChave = g[fim - 1].dist;
             aux = gravaPercurso(g, fim, 0); 
             ultimoElemento->prox = aux->prox;
-            existeCaminho = 1;
-        } else {
-            distanciaComChave = 2147483647;
         }
     }
 
     inicializarSalas(g, N, aberto);
     inicializaGrafoAdj(g, N, inicio);
-    distanciaSemChave = buscaDijkstra(g, inicio, fim, N);
 
-    if (g[fim - 1].via != -1)
-    {
+    existeCaminho = buscaDijkstra(g, inicio, fim, N);
+
+    if (existeCaminho)
+    {   
+        distanciaSemChave = g[fim - 1].dist;
         percursoSemChave = gravaPercurso(g, fim, 0);
-        existeCaminho = 1;
     }
-    else
-        distanciaSemChave = 2147483647;
 
     free(g);
-    if (existeCaminho)
-    {      
-        if(distanciaComChave > distanciaSemChave)
-        {
+    
+    if((distanciaComChave >= distanciaSemChave) && (distanciaSemChave != 2147483647))
+    {
             free(percursoComChave);
             return percursoSemChave;
-        }
-        else
-        {
+    }
+    else if((distanciaComChave <= distanciaSemChave) && (distanciaComChave != 2147483647))
+    {
             free(percursoSemChave);
             return percursoComChave;
-        }
     } else {
         free(percursoSemChave);
         free(percursoComChave);
         return NULL;
     }
 }
-// Aqui finalizaria o EP.
 
 //---------------------------------------------------------
 // use main() para fazer chamadas de teste ao seu programa
@@ -342,10 +339,10 @@ int main()
     */
     int N = 9; // grafo de 3 vértices numerados de 1..3
     int A = 10;
-    int aberto[] = {0, 1, 1, 1, 1, 1, 1, 1, 1}; // todos abertos
+    int aberto[] = {1, 1, 1, 1, 1, 1, 1, 1, 1}; // todos abertos
     int inicio = 7;
-    int fim = 4;
-    int chave = 6;
+    int fim = 1;
+    int chave = 0;
     int ijpeso[] = {
         1, 2, 30,
         1, 3, 20,
@@ -355,8 +352,14 @@ int main()
         3, 4, 20,
         4, 9, 80,
         5, 8, 10,
-        6, 7, 10,
-        7, 9, 80};
+        6, 7, 15,
+        7, 9, 80,
+        7, 7, 10,
+        9, 9, 5,
+        5, 5, 1,
+        3, 3, 100,
+        1, 1, 3,
+        2, 2, 20};
 
 	// // o EP sera testado com uma serie de chamadas como esta
 	NO *teste = NULL;

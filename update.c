@@ -265,7 +265,7 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 //------------------------------------------
 NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int chave)
 {
-    if(inicio <= 0 || fim <= 0)
+    if((inicio <= 0 || fim <= 0) || (inicio == fim))
         return NULL;
     
     VERTICE *g = criaGrafoAdj(N, A, ijpeso, aberto);
@@ -327,22 +327,12 @@ NO *caminho(int N, int A, int *ijpeso, int *aberto, int inicio, int fim, int cha
 //---------------------------------------------------------
 int main()
 {
-	// // exemplo de teste trivial
-    /*
-	int N = 3; // grafo de 3 vértices numerados de 1..3
-	int A = 3;
-	int aberto[] = {1, 1, 1}; // todos abertos
-	int inicio = 1;
-	int fim = 3;
-	int chave = 2;
-	int ijpeso[] = {1, 2, 10, 2, 3, 20, 3, 1, 10};
-    */
-    int N = 9; // grafo de 3 vértices numerados de 1..3
+	int N = 9; // grafo de 3 vértices numerados de 1..3
     int A = 10;
-    int aberto[] = {1, 1, 1, 1, 1, 1, 1, 1, 1}; // todos abertos
+    int aberto[] = {0, 1, 1, 1, 1, 1, 1, 1, 1}; // todos abertos
     int inicio = 7;
-    int fim = 1;
-    int chave = 0;
+    int fim = 7;
+    int chave = 6;
     int ijpeso[] = {
         1, 2, 30,
         1, 3, 20,
@@ -352,20 +342,18 @@ int main()
         3, 4, 20,
         4, 9, 80,
         5, 8, 10,
-        6, 7, 15,
-        7, 9, 80,
-        7, 7, 10,
-        9, 9, 5,
-        5, 5, 1,
-        3, 3, 100,
-        1, 1, 3,
-        2, 2, 20};
+        6, 7, 10,
+        7, 9, 80 };
 
-	// // o EP sera testado com uma serie de chamadas como esta
-	NO *teste = NULL;
-	teste = caminho(N, A, ijpeso, aberto, inicio, fim, chave);
-
-
+    for(int i = 1; i < 9; i ++){
+        inicio = i;
+        for(int j = 0; j < 9; j ++){
+            fim = j;
+            NO *teste = NULL;
+            teste = caminho(N, A, ijpeso, aberto, inicio, fim, chave);
+            int parada_debug = 0;
+        }
+    }
     return 0;
 }
 
